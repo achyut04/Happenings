@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:my_app/api_services.dart'; // Import the ApiServices class
-import 'package:my_app/get_places.dart'; // Import the GetPlaces model
+import 'package:my_app/api_services.dart';
+import 'package:my_app/get_places.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
@@ -34,7 +34,7 @@ class _AddEventPageState extends State<AddEventPage> {
   List<Predictions> _placePredictions = [];
 
   static const String _googleApiKey =
-      'AIzaSyBLNERzXQj0brI3aiIr16DLXHAoy_Ggujo'; // Add your Google API key here
+      'AIzaSyBLNERzXQj0brI3aiIr16DLXHAoy_Ggujo';
 
   // Pick images
   Future<void> _pickImages() async {
@@ -73,12 +73,11 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
-  // Get place predictions based on user input
   Future<void> _getPlacePredictions(String input) async {
     try {
       ApiServices apiService = ApiServices();
       GetPlaces places =
-          await apiService.getPlaces(input); // Call getPlaces API
+          await apiService.getPlaces(input); 
 
       setState(() {
         _placePredictions = places.predictions ?? [];
@@ -88,9 +87,8 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
-  // Get LatLng from the selected place's placeId
   Future<void> _selectPlace(String placeId) async {
-    // Fetch place details and update the map location
+
     final String requestUrl =
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_googleApiKey';
 
@@ -98,11 +96,8 @@ class _AddEventPageState extends State<AddEventPage> {
 
     if (response.statusCode == 200) {
       final responseBody = json.decode(response.body);
-
-      // Print the entire response body for debugging
       print('API Response Body: $responseBody');
 
-      // Check if the response contains 'result' and 'geometry'
       if (responseBody['result'] != null &&
           responseBody['result']['geometry'] != null) {
         final lat = responseBody['result']['geometry']['location']['lat'];
@@ -114,7 +109,7 @@ class _AddEventPageState extends State<AddEventPage> {
               ?.animateCamera(CameraUpdate.newLatLng(_selectedLocationLatLng!));
           _locationController.text =
               responseBody['result']['formatted_address'] ?? 'Unknown Location';
-          _placePredictions.clear(); // Clear predictions after selection
+          _placePredictions.clear();
         });
       } else {
         print('Error: Place details not found or missing geometry.');
@@ -124,7 +119,6 @@ class _AddEventPageState extends State<AddEventPage> {
     }
   }
 
-  // Upload images to Firebase Storage
   Future<List<String>> _uploadImagesToFirebase(List<String> imagePaths) async {
     List<String> downloadUrls = [];
 
@@ -149,13 +143,11 @@ class _AddEventPageState extends State<AddEventPage> {
     return downloadUrls;
   }
 
-  // Submit event data to Firestore
   Future<void> _submitEvent() async {
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        // Fetch the current user's ID (creatorId)
         final user = FirebaseAuth.instance.currentUser;
-        String creatorId = user?.uid ?? ''; // Use the Firebase Auth user ID
+        String creatorId = user?.uid ?? '';
 
         List<String> uploadedImageUrls =
             await _uploadImagesToFirebase(_imagePaths);
@@ -164,28 +156,25 @@ class _AddEventPageState extends State<AddEventPage> {
           'name': _nameController.text,
           'location': _locationController.text,
           'date': _dateController.text,
-          'time': _timeController.text, // Added time field
+          'time': _timeController.text,
           'guest': _guestController.text,
           'description': _descriptionController.text,
           'fees': _feesController.text,
           'type': _selectedType,
           'imagePaths': uploadedImageUrls,
-          'creatorId': creatorId, // Added creatorId
+          'creatorId': creatorId,
         };
 
-        // Add event to Firestore
         await FirebaseFirestore.instance.collection('events').add(newEvent);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Event added successfully')),
         );
 
-        // Navigate to MainScreen and set the currentIndex to 1
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const MainScreen(
-                currentIndex: 1), // Navigate to MainScreen with currentIndex
+            builder: (context) => const MainScreen(currentIndex: 1),
           ),
         );
       } catch (e) {
@@ -208,7 +197,6 @@ class _AddEventPageState extends State<AddEventPage> {
           key: _formKey,
           child: ListView(
             children: [
-              // Image upload button
               _imagePaths.isEmpty
                   ? ElevatedButton(
                       onPressed: _pickImages,
@@ -228,7 +216,6 @@ class _AddEventPageState extends State<AddEventPage> {
                     ),
               const SizedBox(height: 16.0),
 
-              // Event Name
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Event Name'),
@@ -241,7 +228,6 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
               const SizedBox(height: 16.0),
 
-              // Location input with place predictions
               TextFormField(
                 controller: _locationController,
                 decoration: const InputDecoration(
@@ -250,7 +236,7 @@ class _AddEventPageState extends State<AddEventPage> {
                 ),
                 onChanged: (value) {
                   if (value.isNotEmpty) {
-                    _getPlacePredictions(value); // Fetch predictions
+                    _getPlacePredictions(value);
                   } else {
                     setState(() {
                       _placePredictions.clear();
@@ -260,7 +246,6 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
               const SizedBox(height: 8.0),
 
-              // Display the list of place predictions
               if (_placePredictions.isNotEmpty)
                 ListView.builder(
                   shrinkWrap: true,
@@ -270,15 +255,13 @@ class _AddEventPageState extends State<AddEventPage> {
                     return ListTile(
                       title: Text(prediction.description ?? ''),
                       onTap: () {
-                        _selectPlace(prediction
-                            .placeId!); // Fetch LatLng based on placeId
+                        _selectPlace(prediction.placeId!);
                       },
                     );
                   },
                 ),
               const SizedBox(height: 16.0),
 
-              // Date picker
               TextFormField(
                 controller: _dateController,
                 decoration: const InputDecoration(
@@ -296,7 +279,6 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
               const SizedBox(height: 16.0),
 
-              // Time picker
               TextFormField(
                 controller: _timeController,
                 decoration: const InputDecoration(
@@ -314,14 +296,12 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
               const SizedBox(height: 16.0),
 
-              // Guest input
               TextFormField(
                 controller: _guestController,
                 decoration: const InputDecoration(labelText: 'Special Guest'),
               ),
               const SizedBox(height: 16.0),
 
-              // Description
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
@@ -329,7 +309,6 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
               const SizedBox(height: 16.0),
 
-              // Fees input
               TextFormField(
                 controller: _feesController,
                 decoration: const InputDecoration(labelText: 'Fees'),
@@ -337,7 +316,6 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
               const SizedBox(height: 16.0),
 
-              // Event Type dropdown
               DropdownButtonFormField<String>(
                 value: _selectedType,
                 decoration: const InputDecoration(labelText: 'Event Type'),
@@ -361,7 +339,6 @@ class _AddEventPageState extends State<AddEventPage> {
               ),
               const SizedBox(height: 16.0),
 
-              // Submit Button
               ElevatedButton(
                 onPressed: _submitEvent,
                 child: const Text('Add Event'),

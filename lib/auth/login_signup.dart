@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class LoginSignupPage extends StatefulWidget {
   const LoginSignupPage({super.key});
 
@@ -72,45 +71,48 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
   }
 
   void _handleSignUp() async {
-  try {
-    if (passwordController.text == confirmPasswordController.text) {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+    try {
+      if (passwordController.text == confirmPasswordController.text) {
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+        _showSnackBar(
+            'Sign up successful! Welcome, ${userCredential.user?.email}');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MainScreen(currentIndex: 1),
+          ),
+        );
+      } else {
+        _showSnackBar('Passwords do not match', isError: true);
+      }
+    } on FirebaseAuthException catch (e) {
+      _showSnackBar(e.message ?? 'Sign-up failed', isError: true);
+    }
+  }
+
+  void _handleSignIn() async {
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
-      _showSnackBar('Sign up successful! Welcome, ${userCredential.user?.email}');
+      _showSnackBar(
+          'Sign in successful! Welcome back, ${userCredential.user?.email}');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const MainScreen(currentIndex: 1),
         ),
       );
-    } else {
-      _showSnackBar('Passwords do not match', isError: true);
+    } on FirebaseAuthException catch (e) {
+      _showSnackBar(e.message ?? 'Sign-in failed', isError: true);
     }
-  } on FirebaseAuthException catch (e) {
-    _showSnackBar(e.message ?? 'Sign-up failed', isError: true);
   }
-}
-
-void _handleSignIn() async {
-  try {
-    UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: emailController.text,
-      password: passwordController.text,
-    );
-    _showSnackBar('Sign in successful! Welcome back, ${userCredential.user?.email}');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const MainScreen(currentIndex: 1),
-      ),
-    );
-  } on FirebaseAuthException catch (e) {
-    _showSnackBar(e.message ?? 'Sign-in failed', isError: true);
-  }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +162,7 @@ void _handleSignIn() async {
             onPressed: () => showSignInOrSignUpScreen(false),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 32),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -179,7 +181,7 @@ void _handleSignIn() async {
             onPressed: () => showSignInOrSignUpScreen(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 32),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -245,24 +247,24 @@ void _handleSignIn() async {
                   ),
                 ),
               const SizedBox(height: 40),
-              if (isSignupScreen)
-                TextField(
-                  controller: fullNameController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    labelText: 'Full Name',
-                    labelStyle: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    prefixIcon: const Icon(Icons.person),
-                  ),
-                ),
-              const SizedBox(height: 20),
+              // if (isSignupScreen)
+              //   TextField(
+              //     controller: fullNameController,
+              //     decoration: InputDecoration(
+              //       filled: true,
+              //       fillColor: Colors.white,
+              //       labelText: 'Full Name',
+              //       labelStyle: const TextStyle(
+              //         color: Colors.black,
+              //         fontWeight: FontWeight.w500,
+              //       ),
+              //       border: OutlineInputBorder(
+              //         borderRadius: BorderRadius.circular(10),
+              //       ),
+              //       prefixIcon: const Icon(Icons.person),
+              //     ),
+              //   ),
+              // const SizedBox(height: 20),
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(

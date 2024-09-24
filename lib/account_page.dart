@@ -1,62 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:my_app/auth/login_signup.dart';
-
-// class AccountPage extends StatelessWidget {
-//   const AccountPage({super.key});
-
-//   void _handleLogout(BuildContext context) async {
-//     // Firebase sign out
-//     await FirebaseAuth.instance.signOut();
-
-//     // Navigate the user back to the login/signup page
-//     Navigator.pushReplacement(
-//       context,
-//       MaterialPageRoute(builder: (context) => const LoginSignupPage()),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Account'),
-//         backgroundColor: Theme.of(context).colorScheme.primary,
-//       ),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             Text(
-//               'Account Page',
-//               style: TextStyle(
-//                 color: Theme.of(context).colorScheme.onSurface,
-//                 fontSize: 20,
-//               ),
-//             ),
-//             const SizedBox(height: 20),
-//             ElevatedButton(
-//               onPressed: () => _handleLogout(context),
-//               style: ElevatedButton.styleFrom(
-//                 backgroundColor: Theme.of(context).colorScheme.primary,
-//                 padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-//               ),
-//               child: const Text(
-//                 'Log Out',
-//                 style: TextStyle(
-//                   color: Colors.white,
-//                   fontSize: 16,
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//       backgroundColor: Theme.of(context).colorScheme.surface,
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -79,7 +20,7 @@ class _AccountPageState extends State<AccountPage> {
   void initState() {
     super.initState();
     user = FirebaseAuth.instance.currentUser;
-    _fetchMyEvents(); // Fetch user's created events
+    _fetchMyEvents();
   }
 
   Future<void> _fetchMyEvents() async {
@@ -94,18 +35,16 @@ class _AccountPageState extends State<AccountPage> {
       }).toList();
 
       setState(() {
-        _myEvents = events; // Store fetched events in the state
+        _myEvents = events;
       });
     }
   }
 
-  // Function to handle password change
   void _changePassword(BuildContext context) async {
     TextEditingController newPasswordController = TextEditingController();
     TextEditingController emailController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
 
-    // Show a dialog to input the new password and re-authenticate
     showDialog(
       context: context,
       builder: (context) {
@@ -147,14 +86,12 @@ class _AccountPageState extends State<AccountPage> {
                     email.isNotEmpty &&
                     password.isNotEmpty) {
                   try {
-                    // Re-authenticate the user
                     UserCredential userCredential =
                         await FirebaseAuth.instance.signInWithEmailAndPassword(
                       email: email,
                       password: password,
                     );
 
-                    // Update the password after successful re-authentication
                     await userCredential.user?.updatePassword(newPassword);
 
                     ScaffoldMessenger.of(context).showSnackBar(

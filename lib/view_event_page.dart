@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // For user authentication
 import 'package:my_app/main.dart';
+import 'package:workmanager/workmanager.dart';
 import 'event_model.dart';
 import 'edit_event_page.dart'; // The page where the user can edit the event
 
@@ -90,6 +91,24 @@ class _ViewEventPageState extends State<ViewEventPage> {
         SnackBar(content: Text('Failed to delete event: $e')),
       );
     }
+  }
+
+  Future<void> _scheduleNotificationForEvent(Event event) async {
+    DateTime eventDateTime = DateTime.parse(event.date + ' ' + event.time);
+    DateTime notificationTime =
+        eventDateTime.subtract(const Duration(hours: 1));
+
+    // Schedule a background task using WorkManager
+    await Workmanager().registerOneOffTask(
+      "event_notification_${event.id}", // Unique ID for the task
+      "notify_event", // Task name
+      initialDelay: notificationTime.difference(DateTime.now()),
+      inputData: {
+        'eventId': event.id,
+        'eventName': event.name,
+        'eventTime': event.time,
+      },
+    );
   }
 
   Future<void> _registerForEvent() async {

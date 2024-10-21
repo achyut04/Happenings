@@ -13,7 +13,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-// Initialize Flutter Local Notifications Plugin
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
@@ -25,7 +24,6 @@ Future<void> main() async {
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
   User? user = FirebaseAuth.instance.currentUser;
 
-  // Initialize Local Notifications
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
   const InitializationSettings initializationSettings = InitializationSettings(
@@ -33,8 +31,14 @@ Future<void> main() async {
   );
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  // Initialize WorkManager
   Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+
+  Workmanager().registerPeriodicTask(
+    "1",
+    "checkUpcomingEvents",
+    frequency: Duration(minutes: 1),
+  );
+
   await requestNotificationPermission();
 
   runApp(
@@ -45,15 +49,15 @@ Future<void> main() async {
   );
 }
 
-// This function is triggered by WorkManager to schedule notifications in the background
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
-      await Firebase.initializeApp(); // Initialize Firebase in background
+      WidgetsFlutterBinding.ensureInitialized();
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
       User? user = FirebaseAuth.instance.currentUser;
 
       if (user != null) {
-        // Fetch events logic
         QuerySnapshot eventSnapshot = await FirebaseFirestore.instance
             .collection('events')
             .where('registeredUsers', arrayContains: user.uid)
@@ -67,7 +71,7 @@ void callbackDispatcher() {
           Duration difference = eventTime.difference(currentTime);
 
           if (difference.inMinutes > 0 && difference.inMinutes <= 60) {
-            await showNotification(event); // Trigger notification
+            await showNotification(event);
           }
         }
       }
@@ -75,7 +79,7 @@ void callbackDispatcher() {
       print('Error in callbackDispatcher: $e');
     }
 
-    return Future.value(true); // Mark task as complete
+    return Future.value(true);
   });
 }
 
@@ -91,7 +95,6 @@ Future<void> showNotification(Event event) async {
   const NotificationDetails platformChannelSpecifics =
       NotificationDetails(android: androidPlatformChannelSpecifics);
 
-  // Show local notification
   await flutterLocalNotificationsPlugin.show(
     0,
     'Upcoming Event: ${event.name}',
@@ -114,10 +117,8 @@ Future<void> saveNotificationToFirestore(String title, String body) async {
 
 Future<void> requestNotificationPermission() async {
   if (await Permission.notification.isGranted) {
-    // Permission is already granted
     print('Notification permission granted');
   } else {
-    // Request the permission
     PermissionStatus status = await Permission.notification.request();
     if (status.isGranted) {
       print('Notification permission granted');

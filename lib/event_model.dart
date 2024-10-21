@@ -10,7 +10,7 @@ class Event {
   final String? type;
   List<String> imagePaths;
   final String creatorId;
-  List<String> registeredUsers; // New field
+  List<String> registeredUsers;
 
   Event({
     this.id,
@@ -24,7 +24,7 @@ class Event {
     this.type,
     required this.imagePaths,
     required this.creatorId,
-    required this.registeredUsers, // Initialize registered users
+    required this.registeredUsers,
   });
 
   factory Event.fromMap(Map<String, dynamic> map, String id) {
@@ -40,7 +40,7 @@ class Event {
       type: map['type'],
       imagePaths: List<String>.from(map['imagePaths'] ?? []),
       creatorId: map['creatorId'] ?? '',
-      registeredUsers: List<String>.from(map['registeredUsers'] ?? []), // Load registered users
+      registeredUsers: List<String>.from(map['registeredUsers'] ?? []),
     );
   }
 
@@ -56,7 +56,7 @@ class Event {
       'type': type,
       'imagePaths': imagePaths,
       'creatorId': creatorId,
-      'registeredUsers': registeredUsers, // Save registered users
+      'registeredUsers': registeredUsers,
     };
   }
 }

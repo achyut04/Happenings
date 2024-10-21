@@ -31,9 +31,9 @@ class _ViewEventPageState extends State<ViewEventPage> {
   Future<void> _fetchCurrentUser() async {
     final user = FirebaseAuth.instance.currentUser;
     setState(() {
-      currentUserId = user?.uid; // Get the current user's UID
+      currentUserId = user?.uid;
       if (widget.event.registeredUsers.contains(currentUserId)) {
-        isRegistered = true; // Check if the user is already registered
+        isRegistered = true;
       }
     });
   }
@@ -48,11 +48,11 @@ class _ViewEventPageState extends State<ViewEventPage> {
               'Are you sure you want to delete this event? This action cannot be undone.'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false), // Cancel
+              onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true), // Confirm
+              onPressed: () => Navigator.of(context).pop(true),
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],
@@ -61,29 +61,25 @@ class _ViewEventPageState extends State<ViewEventPage> {
     );
 
     if (confirmation == true) {
-      // Proceed with deletion
       await _deleteEvent();
     }
   }
 
   Future<void> _deleteEvent() async {
     try {
-      // Delete the event from Firestore using the document ID
       await FirebaseFirestore.instance
           .collection('events')
-          .doc(widget.event.id) // Event ID is used here
+          .doc(widget.event.id)
           .delete();
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Event deleted successfully')),
       );
 
-      // Return to the previous screen and refresh
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const MainScreen(
-              currentIndex: 1), // Navigate to MainScreen with currentIndex
+          builder: (context) => const MainScreen(currentIndex: 1),
         ),
       );
     } catch (e) {
@@ -98,10 +94,9 @@ class _ViewEventPageState extends State<ViewEventPage> {
     DateTime notificationTime =
         eventDateTime.subtract(const Duration(hours: 1));
 
-    // Schedule a background task using WorkManager
     await Workmanager().registerOneOffTask(
-      "event_notification_${event.id}", // Unique ID for the task
-      "notify_event", // Task name
+      "event_notification_${event.id}",
+      "notify_event",
       initialDelay: notificationTime.difference(DateTime.now()),
       inputData: {
         'eventId': event.id,
@@ -117,8 +112,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
           .collection('events')
           .doc(widget.event.id)
           .update({
-        'registeredUsers': FieldValue.arrayUnion(
-            [currentUserId]) // Add the user to registeredUsers
+        'registeredUsers': FieldValue.arrayUnion([currentUserId])
       });
 
       setState(() {
@@ -130,8 +124,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const MainScreen(
-              currentIndex: 1), // Navigate to MainScreen with currentIndex
+          builder: (context) => const MainScreen(currentIndex: 1),
         ),
       );
     } catch (e) {
@@ -146,8 +139,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
           .collection('events')
           .doc(widget.event.id)
           .update({
-        'registeredUsers': FieldValue.arrayRemove(
-            [currentUserId]) // Remove the user from registeredUsers
+        'registeredUsers': FieldValue.arrayRemove([currentUserId])
       });
 
       setState(() {
@@ -159,8 +151,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const MainScreen(
-              currentIndex: 1), // Navigate to MainScreen with currentIndex
+          builder: (context) => const MainScreen(currentIndex: 1),
         ),
       );
     } catch (e) {
@@ -196,7 +187,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
             ),
             IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: () => _confirmDeleteEvent(), // Delete Event
+              onPressed: () => _confirmDeleteEvent(),
             ),
           ],
         ],
@@ -236,15 +227,14 @@ class _ViewEventPageState extends State<ViewEventPage> {
                 color: Colors.white,
               ),
             )
-          : null, // Hide button if the current user is the event creator
+          : null,
     );
   }
 
-  // Main image with aspect ratio to prevent cutoff
   Widget _buildMainImage() {
     return _mainImagePath.isNotEmpty
         ? AspectRatio(
-            aspectRatio: 16 / 9, // Adjust the aspect ratio if needed
+            aspectRatio: 16 / 9,
             child: Image.network(
               _mainImagePath,
               fit: BoxFit.cover,
@@ -257,7 +247,6 @@ class _ViewEventPageState extends State<ViewEventPage> {
         : const Center(child: Text('No Image'));
   }
 
-  // Image gallery using ListView and showing small thumbnails
   Widget _buildImageGallery() {
     return SizedBox(
       height: 80,
@@ -288,7 +277,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
                 borderRadius: BorderRadius.circular(6),
                 child: Image.network(
                   imagePath,
-                  fit: BoxFit.cover, // Ensures thumbnails are also not cut off
+                  fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return const Center(child: Text('Image not found'));
                   },
@@ -314,7 +303,7 @@ class _ViewEventPageState extends State<ViewEventPage> {
               icon: Icons.calendar_today,
               label: 'Date',
               value: widget.event.date),
-          if (widget.event.time.isNotEmpty) // Display time if available
+          if (widget.event.time.isNotEmpty)
             DetailItem(
                 icon: Icons.access_time,
                 label: 'Time',

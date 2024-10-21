@@ -77,7 +77,7 @@ class _EditEventPageState extends State<EditEventPage> {
           context,
           MaterialPageRoute(
             builder: (context) => const MainScreen(
-                currentIndex: 1), // Navigate to MainScreen with currentIndex
+                currentIndex: 1),
           ),
         );
       } catch (e) {

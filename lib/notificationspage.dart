@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_app/notificationmodel.dart';
-import 'package:my_app/notificationmodel.dart';
 
 
 class NotificationsPage extends StatelessWidget {

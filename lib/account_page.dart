@@ -15,14 +15,14 @@ class AccountPage extends StatefulWidget {
 class _AccountPageState extends State<AccountPage> {
   late User? user;
   List<Event> _myEvents = [];
-  List<Event> _registeredEvents = []; // List to store registered events
+  List<Event> _registeredEvents = [];
 
   @override
   void initState() {
     super.initState();
     user = FirebaseAuth.instance.currentUser;
     _fetchMyEvents();
-    _fetchRegisteredEvents(); // Fetch registered events
+    _fetchRegisteredEvents(); 
   }
 
   Future<void> _fetchMyEvents() async {
@@ -47,7 +47,7 @@ class _AccountPageState extends State<AccountPage> {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('events')
           .where('registeredUsers',
-              arrayContains: user!.uid) // Fetch events where user is registered
+              arrayContains: user!.uid) 
           .get();
 
       List<Event> events = querySnapshot.docs.map((doc) {
@@ -61,7 +61,78 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   void _changePassword(BuildContext context) async {
-    // Password change logic (remains unchanged)
+    TextEditingController newPasswordController = TextEditingController();
+    TextEditingController emailController = TextEditingController();
+    TextEditingController passwordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Change Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+              TextField(
+                controller: passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+              ),
+              TextField(
+                controller: newPasswordController,
+                decoration: const InputDecoration(labelText: 'New Password'),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String email = emailController.text;
+                String password = passwordController.text;
+                String newPassword = newPasswordController.text;
+
+                if (newPassword.isNotEmpty &&
+                    email.isNotEmpty &&
+                    password.isNotEmpty) {
+                  try {
+                    // Re-authenticate the user
+                    UserCredential userCredential =
+                        await FirebaseAuth.instance.signInWithEmailAndPassword(
+                      email: email,
+                      password: password,
+                    );
+
+                    await userCredential.user?.updatePassword(newPassword);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Password updated successfully')),
+                    );
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
+                }
+              },
+              child: const Text('Change'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _handleLogout(BuildContext context) async {
@@ -88,7 +159,6 @@ class _AccountPageState extends State<AccountPage> {
             children: [
               const SizedBox(height: 20),
               Center(
-                // Centered welcome text
                 child: Text(
                   'Welcome, ${user?.email ?? 'User'}',
                   style: TextStyle(
@@ -155,7 +225,7 @@ class _AccountPageState extends State<AccountPage> {
                               MaterialPageRoute(
                                 builder: (context) => ViewEventPage(
                                     event:
-                                        event), // Push replacement to view the event
+                                        event),
                               ),
                             );
                           },

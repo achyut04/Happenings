@@ -4,8 +4,16 @@ import 'package:my_app/event_model.dart';
 import 'view_event_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   Future<Map<String, List<Event>>> _fetchEvents() async {
     QuerySnapshot querySnapshot =
@@ -29,8 +37,6 @@ class HomePage extends StatelessWidget {
             : "${event.date} 00:00:00";
 
         DateTime eventDateTime = DateTime.parse(eventDateTimeString);
-
-        print("Event: ${event.name}, DateTime: $eventDateTime");
 
         if (eventDateTime.isAfter(now)) {
           if (event.creatorId == currentUserId) {
@@ -72,6 +78,30 @@ class HomePage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.primary,
         elevation: 4,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search events by name...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ),
+        ),
       ),
       body: FutureBuilder<Map<String, List<Event>>>(
         future: _fetchEvents(),
@@ -90,8 +120,9 @@ class HomePage extends StatelessWidget {
             return const Center(child: Text('No events found.'));
           }
 
-          final myEvents = snapshot.data!['myEvents']!;
-          final otherEvents = snapshot.data!['otherEvents']!;
+          final myEvents = _filterEventsByName(snapshot.data!['myEvents']!);
+          final otherEvents =
+              _filterEventsByName(snapshot.data!['otherEvents']!);
 
           return ListView(
             padding: const EdgeInsets.all(16.0),
@@ -127,6 +158,15 @@ class HomePage extends StatelessWidget {
       ),
       backgroundColor: const Color(0xFFF4F6F8),
     );
+  }
+
+  List<Event> _filterEventsByName(List<Event> events) {
+    if (_searchQuery.isEmpty) {
+      return events;
+    }
+    return events
+        .where((event) => event.name.toLowerCase().contains(_searchQuery))
+        .toList();
   }
 
   Widget _buildEventList(List<Event> events) {

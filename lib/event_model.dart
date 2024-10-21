@@ -1,5 +1,5 @@
 class Event {
-  final String? id; // Add the id field for Firestore document ID
+  final String? id;
   final String name;
   final String location;
   final String date;
@@ -10,9 +10,10 @@ class Event {
   final String? type;
   List<String> imagePaths;
   final String creatorId;
+  List<String> registeredUsers; // New field
 
   Event({
-    this.id, // Add id to the constructor
+    this.id,
     required this.name,
     required this.location,
     required this.date,
@@ -23,12 +24,12 @@ class Event {
     this.type,
     required this.imagePaths,
     required this.creatorId,
+    required this.registeredUsers, // Initialize registered users
   });
 
-  // Factory method to create an Event object from a Firestore Map
   factory Event.fromMap(Map<String, dynamic> map, String id) {
     return Event(
-      id: id, // Set the document ID
+      id: id,
       name: map['name'] ?? '',
       location: map['location'] ?? '',
       date: map['date'] ?? '',
@@ -39,10 +40,10 @@ class Event {
       type: map['type'],
       imagePaths: List<String>.from(map['imagePaths'] ?? []),
       creatorId: map['creatorId'] ?? '',
+      registeredUsers: List<String>.from(map['registeredUsers'] ?? []), // Load registered users
     );
   }
 
-  // Convert Event object to Firestore Map
   Map<String, dynamic> toMap() {
     return {
       'name': name,
@@ -55,6 +56,7 @@ class Event {
       'type': type,
       'imagePaths': imagePaths,
       'creatorId': creatorId,
+      'registeredUsers': registeredUsers, // Save registered users
     };
   }
 }

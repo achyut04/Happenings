@@ -17,6 +17,7 @@ class ViewEventPage extends StatefulWidget {
 class _ViewEventPageState extends State<ViewEventPage> {
   late String _mainImagePath;
   String? currentUserId;
+  bool isRegistered = false;
 
   @override
   void initState() {
@@ -30,6 +31,9 @@ class _ViewEventPageState extends State<ViewEventPage> {
     final user = FirebaseAuth.instance.currentUser;
     setState(() {
       currentUserId = user?.uid; // Get the current user's UID
+      if (widget.event.registeredUsers.contains(currentUserId)) {
+        isRegistered = true; // Check if the user is already registered
+      }
     });
   }
 
@@ -88,6 +92,64 @@ class _ViewEventPageState extends State<ViewEventPage> {
     }
   }
 
+  Future<void> _registerForEvent() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.event.id)
+          .update({
+        'registeredUsers': FieldValue.arrayUnion(
+            [currentUserId]) // Add the user to registeredUsers
+      });
+
+      setState(() {
+        isRegistered = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registered successfully')));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MainScreen(
+              currentIndex: 1), // Navigate to MainScreen with currentIndex
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to register: $e')));
+    }
+  }
+
+  Future<void> _unregisterForEvent() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.event.id)
+          .update({
+        'registeredUsers': FieldValue.arrayRemove(
+            [currentUserId]) // Remove the user from registeredUsers
+      });
+
+      setState(() {
+        isRegistered = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unregistered successfully')));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MainScreen(
+              currentIndex: 1), // Navigate to MainScreen with currentIndex
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to unregister: $e')));
+    }
+  }
+
   @override
   @override
   @override
@@ -139,17 +201,23 @@ class _ViewEventPageState extends State<ViewEventPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add your register action here
-        },
-        backgroundColor: Theme.of(context).primaryColor,
-        tooltip: 'Register',
-        child: const Icon(
-          Icons.person_add,
-          color: Colors.white,
-        ),
-      ),
+      floatingActionButton: (currentUserId != widget.event.creatorId)
+          ? FloatingActionButton(
+              onPressed: () {
+                if (isRegistered) {
+                  _unregisterForEvent();
+                } else {
+                  _registerForEvent();
+                }
+              },
+              backgroundColor: Theme.of(context).primaryColor,
+              tooltip: isRegistered ? 'Unregister' : 'Register',
+              child: Icon(
+                isRegistered ? Icons.person_remove : Icons.person_add,
+                color: Colors.white,
+              ),
+            )
+          : null, // Hide button if the current user is the event creator
     );
   }
 

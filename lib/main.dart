@@ -31,12 +31,10 @@ Future<void> main() async {
   );
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
-
   Workmanager().registerPeriodicTask(
     "1",
     "checkUpcomingEvents",
-    frequency: Duration(minutes: 1),
+    frequency: Duration(minutes: 15),
   );
 
   await requestNotificationPermission();
